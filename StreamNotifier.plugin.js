@@ -2,7 +2,7 @@
  * @name Toothed
  * @author <3
  * @description Made with Love (❤️)
- * @version 2.0.5
+ * @version 2.0.6
  * @source https://github.com/arquezzz/btdiscordplugin
  * @updateUrl https://raw.githubusercontent.com/arquezzz/btdiscordplugin/main/StreamNotifier.plugin.js
  */
@@ -663,3 +663,4 @@ ${contentHidingRules}
     }
 
 };
+
