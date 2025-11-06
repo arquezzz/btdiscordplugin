@@ -1,8 +1,10 @@
 /**
  * @name Toothed
- * @author  <3
+ * @author <3
  * @description Made with Love (❤️)
- * @version 2.0.4 (✅)
+ * @version 2.0.5
+ * @source https://github.com/arquezzz/btdiscordplugin
+ * @updateUrl https://raw.githubusercontent.com/arquezzz/btdiscordplugin/main/StreamNotifier.plugin.js
  */
 
 module.exports = class StreamNotifier {
@@ -659,4 +661,5 @@ ${contentHidingRules}
         this.isManuallyHidden = false;
         this.hidingCSS = null;
     }
+
 };
