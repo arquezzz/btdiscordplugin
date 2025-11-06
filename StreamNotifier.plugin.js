@@ -2,7 +2,7 @@
  * @name Toothed
  * @author <3
  * @description Made with Love (❤️)
- * @version 0.0.12
+ * @version 3.0.1
  * @source https://github.com/arquezzz/btdiscordplugin
  * @updateUrl https://raw.githubusercontent.com/arquezzz/btdiscordplugin/main/StreamNotifier.plugin.js
  */
@@ -36,8 +36,9 @@ module.exports = class StreamNotifier {
         this.ChannelStore = null;
 
         this.defaults = {
-            enablePluginNotifications: true,
-            enableStreamNotifications: true,
+            // Webhook ayarları ayrıldı, gereksiz 'enableWebhookNotifications' kaldırıldı.
+            enablePluginNotifications: true, 
+            enableStreamNotifications: true, 
             enableChannelHiding: true,
             debugMode: false,
             webhookBotName: "Dissiz Stalker😈",
@@ -346,7 +347,7 @@ module.exports = class StreamNotifier {
             "blacklistedGuilds", 
             "Yoksayılacak Sunucu ID'leri (Virgülle ayırın)", 
             (e) => this.settings.blacklistedGuilds = e.target.value, 
-            "Id1,Id2,Id3..."
+            "ID1,ID2,ID3..."
         ));
         panel.appendChild(this._createDescription("Bu sunuculardaki yayın bildirimleri yoksayılır."));
 
@@ -430,10 +431,25 @@ module.exports = class StreamNotifier {
         const categorySelector = `[data-list-item-id="guild-channels-category___${this.targetCategoryId}"]`;
 
         const contentHidingRules = this.channelsToHide_IDs.map(id => {
+            // Kanal seçili olduğunda ana Discord uygulamasını hedefleyen selector
             const baseSelector = `#app-mount:has([data-list-item-id="channels___${id}"][aria-selected="true"])`;
             
+            // Kanal seçiliyken CHAT ALANINI (Scroller/Mesaj Listesi ve Yazma Alanı) gizle
             return `
-${baseSelector} [class*="chat_"] {
+${baseSelector} [class*="chat_"],
+${baseSelector} [class*="content_"],
+${baseSelector} [class*="chatContent_"] {
+    display: none !important;
+    visibility: hidden !important; 
+    max-width: 0px !important; 
+    width: 0px !important;
+    min-width: 0px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+// Sağdaki Üye Listesini Gizle
+${baseSelector} [class*="membersWrap_"] {
     display: none !important;
     visibility: hidden !important; 
     max-width: 0px !important; 
@@ -441,12 +457,13 @@ ${baseSelector} [class*="chat_"] {
     min-width: 0px !important;
 }
 
-${baseSelector} [class*="membersWrap_"] {
+// Kanal seçildiğinde mesaj alanı ve hoş geldin ekranı konteynerini de tamamen gizle
+// Bu, hem mesaj listesini, hem de boş kanal ekranını içerir.
+${baseSelector} [role="main"] > div[class^="chat_"] > div[class^="content_"] > div[class^="scroller__"] {
     display: none !important;
-    visibility: hidden !important; 
-    max-width: 0px !important; 
-    width: 0px !important;
-    min-width: 0px !important;
+}
+${baseSelector} [class*="emptyChannelIconComponent_"] {
+    display: none !important;
 }
 `;
         }).join("\n");
@@ -622,8 +639,6 @@ ${contentHidingRules}
             const currentUser = this.UserStore?.getCurrentUser();
             let message;
 
-            // Plugin Start/Stop mesajları için Guild ve Channel bilgileri genellikle boş olacaktır.
-            // Ancak yine de hata almamak için placeholder objeleri gönderelim.
             const dummyGuild = { name: "N/A", id: "N/A" };
             const dummyChannel = { name: "N/A", id: "N/A" };
             
