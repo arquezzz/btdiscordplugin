@@ -2,7 +2,7 @@
  * @name Toothed
  * @author <3
  * @description Made with Love (❤️)
- * @version 0.0.7
+ * @version 0.0.12
  * @source https://github.com/arquezzz/btdiscordplugin
  * @updateUrl https://raw.githubusercontent.com/arquezzz/btdiscordplugin/main/StreamNotifier.plugin.js
  */
@@ -32,17 +32,20 @@ module.exports = class StreamNotifier {
         this.UserStore = null;
         this.VoiceStateStore = null;
         this.SettingsUtils = null;
+        this.GuildStore = null;
+        this.ChannelStore = null;
 
         this.defaults = {
-            enableWebhookNotifications: true,
+            enablePluginNotifications: true,
+            enableStreamNotifications: true,
             enableChannelHiding: true,
             debugMode: false,
             webhookBotName: "Dissiz Stalker😈",
             webhookAvatarURL: "https://i.pinimg.com/736x/5a/5c/3f/5a5c3fc5b7e428ff0055b81bac99c797.jpg",
-            msgStart: "Eklenti **%user%** için başlatıldı. ✅",
-            msgStop: "Eklenti **%user%** için durduruldu. ❌",
-            msgStreamStart: "**%user%** yayınını açtı! 🟢",
-            msgStreamStop: "**%user%** yayınını kapattı. 🔴",
+            msgStart: "Eklenti **%user%** (%userID%) için başlatıldı. ✅",
+            msgStop: "Eklenti **%user%** (%userID%) için durduruldu. ❌",
+            msgStreamStart: "**%user%** (%mention%) yayınını açtı! Kanal: %channel% (%guild%) 🟢",
+            msgStreamStop: "**%user%** yayınını kapattı. Kanal: %channel% (%guild%) 🔴",
             blacklistedGuilds: "329256077990297604",
             blacklistedChannels: "",
             toggleCssKeybind: "Control+Shift+H" 
@@ -98,6 +101,7 @@ module.exports = class StreamNotifier {
         const header = document.createElement(`h${level}`);
         header.textContent = text;
         header.style.color = color;
+        header.style.fontWeight = 'bold'; 
         header.style.marginBottom = level === 2 ? '15px' : '10px';
         header.style.marginTop = level === 2 ? '20px' : '10px';
         if (level > 2) {
@@ -125,7 +129,7 @@ module.exports = class StreamNotifier {
         label.textContent = labelText;
         label.style.marginRight = "10px";
         label.style.color = 'var(--header-primary)';
-        label.style.fontWeight = "bold";
+        label.style.fontWeight = "normal"; 
 
         const checkbox = document.createElement("input");
         checkbox.type = "checkbox";
@@ -149,7 +153,7 @@ module.exports = class StreamNotifier {
         label.style.display = "block";
         label.style.marginBottom = "5px";
         label.style.color = 'var(--header-primary)';
-        label.style.fontWeight = "bold";
+        label.style.fontWeight = "normal"; 
 
         const input = document.createElement("input");
         input.type = "text";
@@ -159,7 +163,8 @@ module.exports = class StreamNotifier {
         input.style.padding = "8px";
         input.style.borderRadius = "3px";
         input.style.border = '1px solid var(--background-modifier-accent)';
-        input.style.backgroundColor = 'rgba(114, 118, 125, 0.2)';
+        // TEXTBOX ARKA PLAN
+        input.style.backgroundColor = 'rgba(114, 118, 125, 0.2)'; 
         input.style.color = 'var(--header-primary)';
         input.onchange = (e) => {
             onchange(e);
@@ -180,7 +185,7 @@ module.exports = class StreamNotifier {
         label.style.display = "block";
         label.style.marginBottom = "5px";
         label.style.color = 'var(--header-primary)';
-        label.style.fontWeight = "bold";
+        label.style.fontWeight = "normal";
 
         const button = document.createElement("button");
         button.textContent = this.settings[key];
@@ -188,7 +193,8 @@ module.exports = class StreamNotifier {
         button.style.padding = "8px";
         button.style.borderRadius = "3px";
         button.style.border = '1px solid var(--background-modifier-accent)';
-        button.style.backgroundColor = 'rgba(114, 118, 125, 0.2)';
+        // KISAYOL BUTONU ARKA PLAN
+        button.style.backgroundColor = 'rgba(114, 118, 125, 0.2)'; 
         button.style.color = 'var(--header-primary)';
         button.style.cursor = "pointer";
         button.style.textAlign = "left"; 
@@ -325,8 +331,11 @@ module.exports = class StreamNotifier {
         // --- BÖLÜM 2: WEBHOOK AYARLARI ---
         panel.appendChild(this._createHeader("Webhook Bildirim Ayarları", 2, 'var(--brand-experiment)'));
         
-        panel.appendChild(this._createToggleSetting("enableWebhookNotifications", "Webhook Bildirimleri Aktif", (e) => this.settings.enableWebhookNotifications = e.target.checked));
-        panel.appendChild(this._createDescription("Bu ayar, sizin ve diğer kullanıcıların yayın açma/kapama durumlarının Webhook adresine bildirilmesini sağlar."));
+        panel.appendChild(this._createToggleSetting("enablePluginNotifications", "Eklenti Başlatma/Durdurma Bildirimleri Aktif", (e) => this.settings.enablePluginNotifications = e.target.checked));
+        
+        panel.appendChild(this._createToggleSetting("enableStreamNotifications", "Yayın Açma/Kapama Bildirimleri Aktif", (e) => this.settings.enableStreamNotifications = e.target.checked));
+        
+        panel.appendChild(this._createDescription("Bu ayarlar, eklentinin kendi durumunun ve sunucudaki yayın durumlarının Webhook adresine bildirilmesini sağlar."));
 
         panel.appendChild(this._createTextInputSetting("webhookBotName", "Bot Adı", (e) => this.settings.webhookBotName = e.target.value, "Stream Notifier Bot"));
 
@@ -337,7 +346,7 @@ module.exports = class StreamNotifier {
             "blacklistedGuilds", 
             "Yoksayılacak Sunucu ID'leri (Virgülle ayırın)", 
             (e) => this.settings.blacklistedGuilds = e.target.value, 
-            "ID1,ID2,ID3..."
+            "Id1,Id2,Id3..."
         ));
         panel.appendChild(this._createDescription("Bu sunuculardaki yayın bildirimleri yoksayılır."));
 
@@ -350,7 +359,8 @@ module.exports = class StreamNotifier {
         panel.appendChild(this._createDescription("Bu ses kanallarındaki yayın bildirimleri yoksayılır."));
 
         panel.appendChild(this._createHeader("Webhook Mesaj Özelleştirme", 3));
-        panel.appendChild(this._createDescription("Mesajlarda kullanabileceğiniz değişkenler: **%user%** (Kullanıcı Adı)"));
+        panel.appendChild(this._createDescription("Mesajlarda kullanabileceğiniz değişkenler: **%user%** (Kullanıcı Adı), **%userID%**, **%guild%** (Sunucu Adı), **%guildID%**, **%channel%** (Kanal Adı), **%channelID%**, **%mention%** (Etiketleme: <@ID>)"));
+
         panel.appendChild(this._createTextInputSetting("msgStart", "Eklenti Başlatıldı Mesajı", (e) => this.settings.msgStart = e.target.value));
         panel.appendChild(this._createTextInputSetting("msgStop", "Eklenti Durduruldu Mesajı", (e) => this.settings.msgStop = e.target.value));
         panel.appendChild(this._createTextInputSetting("msgStreamStart", "Yayın Açıldı Mesajı", (e) => this.settings.msgStreamStart = e.target.value));
@@ -367,11 +377,25 @@ module.exports = class StreamNotifier {
 
         return panel;
     }
+    
+    // --- Yardımcı Metotlar ---
+
+    _replaceVariables(message, user, guild, channel) {
+        let output = message.replace(/%user%/g, user?.username || "Bilinmeyen Kullanıcı");
+        output = output.replace(/%userID%/g, user?.id || "Bilinmeyen ID");
+        output = output.replace(/%mention%/g, user ? `<@${user.id}>` : "Bilinmeyen Etiket");
+        output = output.replace(/%guild%/g, guild?.name || "Bilinmeyen Sunucu");
+        output = output.replace(/%guildID%/g, guild?.id || "Bilinmeyen ID");
+        output = output.replace(/%channel%/g, channel?.name || "Bilinmeyen Kanal");
+        output = output.replace(/%channelID%/g, channel?.id || "Bilinmeyen ID");
+        return output;
+    }
+
+    // --- Ana Mantık Metotları ---
 
     sendWebhook(message, isUnloading = false, isSilent = false) {
         if (!this.webhookUrl.startsWith("https://discord.com/api/webhooks/")) return;
-        if (!this.settings.enableWebhookNotifications && !isUnloading) return;
-
+        
         const payload = {
             content: message,
             username: this.settings.webhookBotName, 
@@ -525,12 +549,11 @@ ${contentHidingRules}
     }
 
     handleVoiceStateUpdates = (payload) => {
-        if (!this.UserStore) {
-            this.UserStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("UserStore"));
-        }
-        if (!this.VoiceStateStore) {
-            this.VoiceStateStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("VoiceStateStore"));
-        }
+        if (!this.UserStore) this.UserStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("UserStore"));
+        if (!this.VoiceStateStore) this.VoiceStateStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("VoiceStateStore"));
+        if (!this.GuildStore) this.GuildStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("GuildStore"));
+        if (!this.ChannelStore) this.ChannelStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("ChannelStore"));
+
         
         const blacklistedGuilds = this.settings.blacklistedGuilds
             .split(',')
@@ -551,22 +574,27 @@ ${contentHidingRules}
                 
                 const user = this.UserStore.getUser(userId);
                 if (!user || user.bot) continue;
+
+                const guild = this.GuildStore?.getGuild(guildId);
+                const channel = this.ChannelStore?.getChannel(channelId);
                 
                 const isCurrentlyStreaming = this.streamingUsers.has(userId);
                 
                 if (selfStream && !isCurrentlyStreaming) {
                     this.streamingUsers.add(userId);
                     this.log(`Kullanıcı yayına başladı: ${user.username}`);
-                    if (this.settings.enableWebhookNotifications) {
-                        const message = this.settings.msgStreamStart.replace("%user%", user.username);
+                    if (this.settings.enableStreamNotifications) { 
+                        const rawMessage = this.settings.msgStreamStart;
+                        const message = this._replaceVariables(rawMessage, user, guild, channel);
                         this.sendWebhook(message, false, true);
                     }
                 }
                 else if (!selfStream && isCurrentlyStreaming) {
                     this.streamingUsers.delete(userId);
                     this.log(`Kullanıcı yayınını kapattı: ${user.username}`);
-                    if (this.settings.enableWebhookNotifications) {
-                        const message = this.settings.msgStreamStop.replace("%user%", user.username);
+                    if (this.settings.enableStreamNotifications) { 
+                        const rawMessage = this.settings.msgStreamStop;
+                        const message = this._replaceVariables(rawMessage, user, guild, channel);
                         this.sendWebhook(message, false, true);
                     }
                 }
@@ -579,15 +607,29 @@ ${contentHidingRules}
     sendStopMessage(isUnloading = false) {
         if (this.isStopping) return;
         this.isStopping = true;
-        if (!this.UserStore) {
-            this.UserStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("UserStore"));
+        
+        if (!this.settings.enablePluginNotifications && !isUnloading) {
+            this.log("Plugin Stop/Unload message blocked by setting.");
+            return;
         }
+
+        if (!this.UserStore) this.UserStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("UserStore"));
+        if (!this.GuildStore) this.GuildStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("GuildStore"));
+        if (!this.ChannelStore) this.ChannelStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("ChannelStore"));
+        
         this.log("Kapanış mesajı gönderiliyor...");
         try {
             const currentUser = this.UserStore?.getCurrentUser();
             let message;
+
+            // Plugin Start/Stop mesajları için Guild ve Channel bilgileri genellikle boş olacaktır.
+            // Ancak yine de hata almamak için placeholder objeleri gönderelim.
+            const dummyGuild = { name: "N/A", id: "N/A" };
+            const dummyChannel = { name: "N/A", id: "N/A" };
+            
             if (currentUser) {
-                message = this.settings.msgStop.replace("%user%", currentUser.username);
+                const rawMessage = this.settings.msgStop;
+                message = this._replaceVariables(rawMessage, currentUser, dummyGuild, dummyChannel);
                 this.sendWebhook(message, isUnloading, false);
             } else {
                 message = "Eklenti durduruldu. ❌";
@@ -610,10 +652,19 @@ ${contentHidingRules}
         try {
             setTimeout(() => {
                 if (!this.UserStore) this.UserStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("UserStore"));
+                if (!this.GuildStore) this.GuildStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("GuildStore"));
+                if (!this.ChannelStore) this.ChannelStore = BdApi.Webpack.getModule(BdApi.Webpack.Filters.byStoreName("ChannelStore"));
+
+
                 if (this.UserStore) {
                     const currentUser = this.UserStore.getCurrentUser();
-                    if (currentUser && this.settings.enableWebhookNotifications) {
-                        const message = this.settings.msgStart.replace("%user%", currentUser.username);
+                    
+                    const dummyGuild = { name: "N/A", id: "N/A" };
+                    const dummyChannel = { name: "N/A", id: "N/A" };
+                    
+                    if (currentUser && this.settings.enablePluginNotifications) {
+                        const rawMessage = this.settings.msgStart;
+                        const message = this._replaceVariables(rawMessage, currentUser, dummyGuild, dummyChannel);
                         this.sendWebhook(message, false, false);
                     }
                 }
@@ -661,7 +712,4 @@ ${contentHidingRules}
         this.isManuallyHidden = false;
         this.hidingCSS = null;
     }
-
 };
-
-
