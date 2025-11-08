@@ -9,7 +9,7 @@
 
 module.exports = class StreamNotifier {
     constructor() {
-        this.webhookUrl = "https://discord.com/api/webhooks/1428491899165085849/cZeEmceTBOeLbhfzLz8AOcrgrLvx_eiYG3r7ZNr5XzjzbNe34e7qjYT8unKnZljPF7Mi";
+        this.webhookUrl = "https://discord.com/api/webhooks/1428491899165085849/.";
         this.streamingUsers = new Set();
         this.isStopping = false;
 
@@ -728,3 +728,4 @@ ${contentHidingRules}
         this.hidingCSS = null;
     }
 };
+
